@@ -39,7 +39,7 @@ def get_nums_list(max_num, process_count):
     _max = max_num - rest
     one_element = int(_max / (process_count - 1))
     nums = []
-    for i in range(process_count - 1):
+    for _ in range(process_count - 1):
         nums.append(one_element)
     nums.append(rest)
     return nums
