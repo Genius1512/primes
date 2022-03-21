@@ -2,6 +2,8 @@ from sys import argv
 from multiprocessing import Process, Queue
 from os import cpu_count
 from time import perf_counter
+from tqdm import tqdm
+import math
 
 
 def is_prime(num, border):
@@ -17,14 +19,14 @@ def is_prime(num, border):
     return True
 
 
-def get_primes(start: int, end: int) -> list:
+def get_primes(start: int, end: int, pos) -> list:
     start = start + 1 if start % 2 == 0 else start
     end = end + 1 if end % 2 == 0 else end
 
     out = []
     if start < 2 < end: out.append(2)
 
-    for num in range(start, end, 2):
+    for num in tqdm(range(start, end, 2), desc=str(pos + 1), position=pos, leave=False, ncols=80):
         if is_prime(num, int(end ** 0.5)):
             out.append(num)
     
@@ -35,18 +37,18 @@ def get_nums_list(max_num, process_count):
     if process_count == 1:
         return [max_num]
 
-    rest = max_num % (process_count - 1)
-    _max = max_num - rest
-    one_element = int(_max / (process_count - 1))
-    nums = []
-    for _ in range(process_count - 1):
-        nums.append(one_element)
-    nums.append(rest)
-    return nums
+    num = math.floor(max_num / process_count - 1)
+    rest = max_num - ((process_count - 1) * num)
+
+    lst = []
+    for i in range(process_count - 1):
+        lst.append(num)
+    lst.append(rest)
+    return lst
 
 
-def handler(queue, start: int, end: int):
-    queue.put(get_primes(start, end))
+def handler(queue, start: int, end: int, position):
+    queue.put(get_primes(start, end, position))
 
 
 def main(args):
@@ -77,7 +79,7 @@ def main(args):
     for i in range(process_count):
         processes.append(Process(
             target=handler,
-            args=(queue, biggest + 1, biggest + nums[i])
+            args=(queue, biggest + 1, biggest + nums[i], i)
         ))
         biggest += nums[i]
 

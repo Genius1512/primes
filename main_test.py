@@ -22,3 +22,7 @@ class Test_TestGetPrimes(unittest.TestCase):
             5,
             7
         ])
+
+
+if __name__ == "__main__":
+    print(main.get_nums_list(1000000, 8))
