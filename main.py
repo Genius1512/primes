@@ -19,14 +19,14 @@ def is_prime(num, border):
     return True
 
 
-def get_primes(start: int, end: int, pos) -> list:
+def get_primes(start: int, end: int, n) -> list:
     start = start + 1 if start % 2 == 0 else start
     end = end + 1 if end % 2 == 0 else end
 
     out = []
     if start < 2 < end: out.append(2)
 
-    for num in tqdm(range(start, end, 2), desc=str(pos + 1), position=pos, leave=False, ncols=80):
+    for num in tqdm(range(start, end, 2), desc=str(n + 1), position=n):
         if is_prime(num, int(end ** 0.5)):
             out.append(num)
     
