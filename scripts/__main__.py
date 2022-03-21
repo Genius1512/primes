@@ -70,9 +70,13 @@ def main():
     biggest = 0
     processes: list[Process] = []
     for i in range(args.process_count):
+        if not args.bar:
+            id = None
+        else:
+            id = i
         processes.append(Process(
             target=worker,
-            args=(i, biggest + 1, biggest + nums[i], queue)
+            args=(id, biggest + 1, biggest + nums[i], queue)
         ))
         biggest += nums[i]
 
@@ -86,18 +90,22 @@ def main():
         p.join()
 
     end_time = perf_counter()
+    
+    if not args.no_output:
+        string = ""
+        for prime in primes:
+            string += str(prime) + "\n"
+        string += f"\nCalculated {len(primes)} primes\n"
+        string += f"Ran for {end_time - start_time} seconds\n"
 
-    string = ""
-    for prime in primes:
-        string += str(prime) + "\n"
-    string += f"\nCalculated {len(primes)} primes\n"
-    string += f"Ran for {end_time - start_time} seconds\n"
-
-    if args.out == None:
-        Console.success(string)
+        if args.out == None:
+            Console.success(string)
+        else:
+            with open(args.out, "w") as f:
+                f.write(string)
     else:
-        with open(args.out, "w") as f:
-            f.write(string)
+        Console.success(f"\nCalculated {len(primes)} primes\n")
+        Console.success(f"Ran for {end_time - start_time} seconds\n")
 
 
 if __name__ == "__main__":

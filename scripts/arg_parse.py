@@ -52,7 +52,14 @@ def parse_args():
         "-b", "--bar",
         action="store_true",
         default=False,
-        help="Show progress bar or not"
+        help="Show progress bar(s)"
+    )
+
+    parser.add_argument(
+        "--no-output",
+        action="store_true",
+        default=False,
+        help="Hide output"
     )
 
     parser.add_argument(
