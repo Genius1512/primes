@@ -2,28 +2,19 @@ from argparse import ArgumentParser, ArgumentTypeError
 from os import cpu_count
 
 
-def max_number(num: str):
+def process_count(arg: str):
+    if arg == "max":
+        return cpu_count()
+
     try:
-        num = int(num)
+        arg = int(arg)
     except ValueError:
-        raise ArgumentTypeError("Could not convert to number")
+        raise ArgumentTypeError("Could not convert to int")
 
-    if num < 10:
-        raise ArgumentTypeError("Needs to be bigger than 10")
-
-    return num
-
-
-def process_count(num: str):
-    try:
-        num = int(num)
-    except ValueError:
-        raise ArgumentTypeError("Could not convert to number")
-
-    if 0 < num <= cpu_count():
-        return num
+    if 0 < arg <= cpu_count():
+        return arg
     else:
-        raise ArgumentTypeError("To small or to big: 0 < num < cpu_count")
+        raise ArgumentTypeError(f"Needs to be between 1 and {cpu_count()}")
 
 
 def parse_args():
@@ -35,30 +26,47 @@ def parse_args():
     )
 
     parser.add_argument(
-        "-m", "--max",
-        type=max_number,
-        default=1000000,
-        help="Max number"
+        "--min",
+        type=int,
+        default=1,
+        help="Smallest number to test"
     )
 
     parser.add_argument(
-        "-p", "--process-count",
+        "--max",
+        type=int,
+        default=1000000,
+        help="Highest number to test"
+    )
+
+    parser.add_argument(
+        "-p", "--process_count",
         type=process_count,
         default=cpu_count(),
-        help="Process count"
+        help="Amout of workers"
     )
 
     parser.add_argument(
-        "-b", "--bar",
+        "--bar",
         action="store_true",
-        default=False,
-        help="Show progress bar or not"
+        help="Show progress bar"
     )
 
     parser.add_argument(
         "-o", "--out",
-        default=None,
-        help="Out file"
+        help="File to write to"
+    )
+
+    parser.add_argument(
+        "--no-output",
+        action="store_true",
+        help="Hide output"
+    )
+
+    parser.add_argument(
+        "--sort",
+        action="store_true",
+        help="Sort primes by number"
     )
 
     return parser.parse_args()

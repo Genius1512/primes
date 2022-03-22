@@ -39,17 +39,26 @@ def get_primes(start: int, end: int, pos=None):
     return out
 
 
-def get_nums_list(max_num, process_count):
+def get_nums_list(min_num, max_num, process_count):
     if process_count == 1:
-        return [max_num]
+        return [[min_num, max_num]]
+    
+    count_of_nums = max_num - min_num
+    nums_per_worker = math.floor(count_of_nums / process_count)
+    rest = count_of_nums - (nums_per_worker * (process_count - 1)) + 1
 
-    num = math.floor(max_num / process_count - 1)
-    rest = max_num - ((process_count - 1) * num)
-
+    start = min_num
     lst = []
     for i in range(process_count - 1):
-        lst.append(num)
-    lst.append(rest)
+        lst.append([
+            start + 1,
+            start + nums_per_worker
+        ])
+        start += nums_per_worker
+    lst.append([
+        max_num - rest + 2,
+        max_num
+    ])
     return lst
 
 
@@ -66,8 +75,7 @@ def main():
     queue = Queue()
     primes = []
 
-    nums = get_nums_list(args.max, args.process_count)
-    biggest = 0
+    nums = get_nums_list(args.min, args.max, args.process_count)
     processes: list[Process] = []
     for i in range(args.process_count):
         if not args.bar:
@@ -77,9 +85,8 @@ def main():
 
         processes.append(Process(
             target=worker,
-            args=(id, biggest + 1, biggest + nums[i], queue)
+            args=(id, nums[i][0], nums[i][1], queue)
         ))
-        biggest += nums[i]
 
     start_time = perf_counter()
 
@@ -91,19 +98,33 @@ def main():
         p.join()
 
     end_time = perf_counter()
+    
+    if args.sort:
+        primes.sort()
 
-    string = ""
-    for prime in primes:
-        string += str(prime) + "\n"
-    string += f"\nCalculated {len(primes)} primes\n"
-    string += f"Ran for {end_time - start_time} seconds\n"
+    if not args.no_output:
+        string = ""
+        for prime in primes:
+            string += str(prime) + "\n"
+        string += f"\nCalculated {len(primes)} primes\n"
+        string += f"Ran for {end_time - start_time} seconds\n"
 
-    if args.out == None:
-        Console.success(string)
+        if args.out == None:
+            Console.success(string)
+        else:
+            with open(args.out, "w") as f:
+                f.write(string)
     else:
-        with open(args.out, "w") as f:
-            f.write(string)
+        string = f"""\nCalculated {len(primes)} primes
+Ran for {end_time - start_time} seconds"""
+        if args.out == None:
+            Console.success(string)
+        else:
+            with open(args.out, "w") as f:
+                f.write(string)
 
 
 if __name__ == "__main__":
     main()
+
+
