@@ -1,5 +1,6 @@
 from argparse import ArgumentParser, ArgumentTypeError
 from os import cpu_count
+from sys import argv
 
 
 def process_count(arg: str):
@@ -14,7 +15,10 @@ def process_count(arg: str):
     if 0 < arg <= cpu_count():
         return arg
     else:
-        raise ArgumentTypeError(f"Needs to be between 1 and {cpu_count()}")
+        if not "--pforce" in argv:
+            raise ArgumentTypeError(f"Needs to be between 1 and {cpu_count()}")
+        else:
+            return arg
 
 
 def parse_args():
@@ -44,6 +48,12 @@ def parse_args():
         type=process_count,
         default=cpu_count(),
         help="Amout of workers"
+    )
+
+    parser.add_argument(
+        "--pforce",
+        action="store_true",
+        help="Allow process_count over max process_count"
     )
 
     parser.add_argument(
