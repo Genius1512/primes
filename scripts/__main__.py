@@ -70,9 +70,14 @@ def main():
     biggest = 0
     processes: list[Process] = []
     for i in range(args.process_count):
+        if not args.bar:
+            id = None
+        else:
+            id = i
+
         processes.append(Process(
             target=worker,
-            args=(i, biggest + 1, biggest + nums[i], queue)
+            args=(id, biggest + 1, biggest + nums[i], queue)
         ))
         biggest += nums[i]
 
