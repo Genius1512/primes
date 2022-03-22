@@ -2,22 +2,28 @@ from argparse import ArgumentParser, ArgumentTypeError
 from os import cpu_count
 
 
-def p_count(arg: str):
-    if arg == "max":
-        return cpu_count()
+def max_number(num: str):
+    try:
+        num = int(num)
+    except ValueError:
+        raise ArgumentTypeError("Could not convert to number")
+
+    if num < 10:
+        raise ArgumentTypeError("Needs to be bigger than 10")
+
+    return num
+
+
+def process_count(num: str):
+    try:
+        num = int(num)
+    except ValueError:
+        raise ArgumentTypeError("Could not convert to number")
+
+    if 0 < num <= cpu_count():
+        return num
     else:
-        try:
-            arg = int(arg)
-        except ValueError:
-            raise ArgumentTypeError("Process Count needs to be either a number or 'max'")
-
-        if arg > cpu_count():
-            raise ArgumentTypeError(f"Process Count is above the max of {cpu_count()}")
-        elif arg < 1:
-            raise ArgumentTypeError(f"Process Count needs to be above zero")
-
-        return arg
-
+        raise ArgumentTypeError("To small or to big: 0 < num < cpu_count")
 
 
 def parse_args():
@@ -29,30 +35,30 @@ def parse_args():
     )
 
     parser.add_argument(
-        "--min",
-        default=10,
-        type=int,
-        help="Min number"
-    )
-
-    parser.add_argument(
-        "--max",
-        default=10000000,
-        type=int,
+        "-m", "--max",
+        type=max_number,
+        default=1000000,
         help="Max number"
     )
 
     parser.add_argument(
         "-p", "--process-count",
+        type=process_count,
         default=cpu_count(),
-        type=p_count,
-        help="Number of processes"
+        help="Process count"
     )
 
     parser.add_argument(
-        "--bar",
+        "-b", "--bar",
         action="store_true",
-        help="Show progress bar"
+        default=False,
+        help="Show progress bar or not"
+    )
+
+    parser.add_argument(
+        "-o", "--out",
+        default=None,
+        help="Out file"
     )
 
     return parser.parse_args()
