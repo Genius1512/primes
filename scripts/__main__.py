@@ -1,60 +1,70 @@
-from arg_parse import parse_args
-from console import *
-
 import math
-from time import perf_counter
-from tqdm import tqdm
-from multiprocessing import Process, Queue
+from threading import Thread
+from multiprocessing import Process, Manager
+from rich.progress import Progress
+
+from console import *
+from arg_parse import parse_args
 
 
-def is_prime(num: int, border: int) -> bool:
+def is_prime(num: int) -> bool:
+    """
+    Check if num is prime
+    """
     if num == 1:
         return False
     elif num == 2:
-        return False
+        return True
 
-    for i in range(2, border):
+    for i in range(1, math.ceil(num ** 0.5)):
+        if i == 1:
+            continue
+        
         if num % i == 0:
             return False
 
     return True
 
 
-def get_primes(start: int, end: int, pos=None):
-    start = start + 1 if start % 2 == 0 else start
-    end = end + 1 if end %2 == 0 else end
-
-    out = []
-    if start < 2 < end: out.append(2)
-    
-    if pos != None:
-        for num in tqdm(range(start, end, 2), desc=str(pos + 1), position=pos):
-            if is_prime(num, int(end ** 0.5)):
-                out.append(num)
-    else:
-        for num in range(start, end, 2):
-            if is_prime(num, int(end ** 0.5)):
-                out.append(num)
-
-    return out
-
-
-def get_nums_list(max_num, process_count):
+def get_nums_list(min_num: int, max_num: int, process_count: int):
     if process_count == 1:
-        return [max_num]
-
-    num = math.floor(max_num / process_count - 1)
-    rest = max_num - ((process_count - 1) * num)
+        return [
+            [min_num, max_num]
+        ]
+    
+    count_of_nums = max_num - min_num
+    nums_per_worker = math.floor(count_of_nums / 8)
+    rest = count_of_nums - ((process_count - 1) * nums_per_worker)
 
     lst = []
+    start = min_num
     for i in range(process_count - 1):
-        lst.append(num)
-    lst.append(rest)
+        lst.append([
+           start + 1,
+           start + nums_per_worker
+        ])
+        start += nums_per_worker
+    lst.append([
+        max_num - rest,
+        max_num
+    ])
     return lst
 
 
-def worker(id: int, start: int, end: int, q: Queue):
-    q.put(get_primes(start, end, id))
+def worker(start: int, end: int, primes):
+    start = start + 1 if start % 2 == 0 else start
+    end   = end   + 1 if end   % 2 == 0 else end
+    
+    for num in range(start, end, 2):
+        if is_prime(num):
+            primes.append(num)
+
+
+def show_progress(primes, total):
+    with Progress() as progress:
+        task = progress.add_task("Calculating primes", total=total)
+        while True:
+            progress.update(len(primes))
 
 
 def main():
@@ -63,49 +73,38 @@ def main():
     """
     args = parse_args()
 
-    queue = Queue()
-    primes = []
+    manager = Manager()
+    primes = manager.list()
+    
+    processes = []
+    nums_list = get_nums_list(args.min, args.max, args.process_count)
 
-    nums = get_nums_list(args.max, args.process_count)
-    biggest = 0
-    processes: list[Process] = []
     for i in range(args.process_count):
-        if not args.bar:
-            id = None
-        else:
-            id = i
-        processes.append(Process(
-            target=worker,
-            args=(id, biggest + 1, biggest + nums[i], queue)
-        ))
-        biggest += nums[i]
+        processes.append(
+            Process(
+                target=worker,
+                args=(
+                        nums_list[i][0],
+                        nums_list[i][1],
+                        primes
+                )
+            )
+        )
 
-    start_time = perf_counter()
+    if args.bar:
+        updater = Thread(
+            target=show_progress,
+            args=(primes, args.max - args.min),
+            daemon=True
+        )
+        updater.start()
 
     for p in processes:
         p.start()
     for p in processes:
-        primes += queue.get()
-    for p in processes:
         p.join()
 
-    end_time = perf_counter()
-    
-    if not args.no_output:
-        string = ""
-        for prime in primes:
-            string += str(prime) + "\n"
-        string += f"\nCalculated {len(primes)} primes\n"
-        string += f"Ran for {end_time - start_time} seconds\n"
-
-        if args.out == None:
-            Console.success(string)
-        else:
-            with open(args.out, "w") as f:
-                f.write(string)
-    else:
-        Console.success(f"\nCalculated {len(primes)} primes\n")
-        Console.success(f"Ran for {end_time - start_time} seconds\n")
+    print(primes.sort())
 
 
 if __name__ == "__main__":

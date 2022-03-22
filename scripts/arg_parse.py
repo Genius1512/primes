@@ -2,28 +2,22 @@ from argparse import ArgumentParser, ArgumentTypeError
 from os import cpu_count
 
 
-def max_number(num: str):
-    try:
-        num = int(num)
-    except ValueError:
-        raise ArgumentTypeError("Could not convert to number")
-
-    if num < 10:
-        raise ArgumentTypeError("Needs to be bigger than 10")
-
-    return num
-
-
-def process_count(num: str):
-    try:
-        num = int(num)
-    except ValueError:
-        raise ArgumentTypeError("Could not convert to number")
-
-    if 0 < num <= cpu_count():
-        return num
+def p_count(arg: str):
+    if arg == "max":
+        return cpu_count()
     else:
-        raise ArgumentTypeError("To small or to big: 0 < num < cpu_count")
+        try:
+            arg = int(arg)
+        except ValueError:
+            raise ArgumentTypeError("Process Count needs to be either a number or 'max'")
+
+        if arg > cpu_count():
+            raise ArgumentTypeError(f"Process Count is above the max of {cpu_count()}")
+        elif arg < 1:
+            raise ArgumentTypeError(f"Process Count needs to be above zero")
+
+        return arg
+
 
 
 def parse_args():
@@ -35,37 +29,30 @@ def parse_args():
     )
 
     parser.add_argument(
-        "-m", "--max",
-        type=max_number,
-        default=1000000,
+        "--min",
+        default=10,
+        type=int,
+        help="Min number"
+    )
+
+    parser.add_argument(
+        "--max",
+        default=10000000,
+        type=int,
         help="Max number"
     )
 
     parser.add_argument(
         "-p", "--process-count",
-        type=process_count,
         default=cpu_count(),
-        help="Process count"
+        type=p_count,
+        help="Number of processes"
     )
 
     parser.add_argument(
-        "-b", "--bar",
+        "--bar",
         action="store_true",
-        default=False,
-        help="Show progress bar(s)"
-    )
-
-    parser.add_argument(
-        "--no-output",
-        action="store_true",
-        default=False,
-        help="Hide output"
-    )
-
-    parser.add_argument(
-        "-o", "--out",
-        default=None,
-        help="Out file"
+        help="Show progress bar"
     )
 
     return parser.parse_args()
