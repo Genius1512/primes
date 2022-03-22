@@ -28,7 +28,7 @@ def get_primes(start: int, end: int, pos=None):
     if start < 2 < end: out.append(2)
     
     if pos != None:
-        for num in tqdm(range(start, end, 2), desc=str(pos + 1), position=pos):
+        for num in tqdm(range(start, end, 2), desc=str(pos + 1), position=pos, unit="Primes"):
             if is_prime(num, int(end ** 0.5)):
                 out.append(num)
     else:
@@ -72,6 +72,9 @@ def main():
     """
     args = parse_args()
 
+    Console.success(f"Calculating all primes from {args.min} to {args.max}")
+    Console.success(f"Process Count: {args.process_count}")
+
     queue = Queue()
     primes = []
 
@@ -100,9 +103,11 @@ def main():
     end_time = perf_counter()
     
     if args.sort:
+        Console.print("Sorting list...")
         primes.sort()
 
     if not args.no_output:
+        Console.print("Generating output string...")
         string = ""
         for prime in primes:
             string += str(prime) + "\n"
