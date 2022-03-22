@@ -2,6 +2,7 @@ from arg_parse import parse_args
 from console import *
 
 import math
+from sys import exit
 from time import perf_counter
 from tqdm import tqdm
 from multiprocessing import Process, Queue
@@ -45,6 +46,9 @@ def get_nums_list(min_num, max_num, process_count):
     
     count_of_nums = max_num - min_num
     nums_per_worker = math.floor(count_of_nums / process_count)
+    if nums_per_worker <= 1:
+        return None
+
     rest = count_of_nums - (nums_per_worker * (process_count - 1)) + 1
 
     start = min_num
@@ -79,6 +83,10 @@ def main():
     primes = []
 
     nums = get_nums_list(args.min, args.max, args.process_count)
+    if nums == None:
+        Console.error("Number of workers to high")
+        exit(1)
+
     processes: list[Process] = []
     for i in range(args.process_count):
         if not args.bar:
@@ -105,31 +113,30 @@ def main():
     if args.sort:
         Console.print("Sorting list...")
         primes.sort()
-
+    
+    Console.print("Generating out string...")
     if not args.no_output:
-        Console.print("Generating output string...")
         string = ""
-        for prime in primes:
-            string += str(prime) + "\n"
-        string += f"\nCalculated {len(primes)} primes\n"
-        string += f"Ran for {end_time - start_time} seconds\n"
 
-        if args.out == None:
-            Console.success(string)
-        else:
-            with open(args.out, "w") as f:
-                f.write(string)
-    else:
-        string = f"""\nCalculated {len(primes)} primes
+        for prime in primes:
+            string += f"{prime}\n"
+
+        string += f"""\nCalculated {len(primes)} Primes
 Ran for {end_time - start_time} seconds"""
-        if args.out == None:
-            Console.success(string)
-        else:
-            with open(args.out, "w") as f:
-                f.write(string)
+    
+    else:
+        string = f"""\nCalculated {len(primes)} Primes
+Ran for {end_time - start_time} seconds"""
+        
+    if args.out == None:
+        Console.print(string)
+
+    else:
+        with open(args.out, "w") as f:
+            f.write(string)
+        Console.print(f"Wrote to {args.out}")
 
 
 if __name__ == "__main__":
     main()
-
 

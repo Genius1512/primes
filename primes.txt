@@ -1,3 +1,0 @@
-
-Calculated 78430 primes
-Ran for 1.145864836000328 seconds

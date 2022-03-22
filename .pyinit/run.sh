@@ -18,4 +18,3 @@ time="$(($(date +%s)-time))"
 echo ""
 echo "<----------RUN---------->"
 echo "Done in $time seconds"
-deactivate
