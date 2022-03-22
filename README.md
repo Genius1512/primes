@@ -2,4 +2,4 @@
 
 ## Links
 
--[LICENSE](LICENSE)
+- [LICENSE](LICENSE)
