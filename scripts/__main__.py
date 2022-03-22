@@ -8,13 +8,13 @@ from tqdm import tqdm
 from multiprocessing import Process, Queue
 
 
-def is_prime(num: int, border: int) -> bool:
+def is_prime(num: int) -> bool:
     if num == 1:
         return False
     elif num == 2:
         return False
 
-    for i in range(2, border):
+    for i in range(2, math.ceil(num ** 0.5) + 1):
         if num % i == 0:
             return False
 
@@ -22,19 +22,20 @@ def is_prime(num: int, border: int) -> bool:
 
 
 def get_primes(start: int, end: int, pos=None):
-    start = start + 1 if start % 2 == 0 else start
-    end = end + 1 if end %2 == 0 else end
-
     out = []
-    if start < 2 < end: out.append(2)
-    
-    if pos != None:
-        for num in tqdm(range(start, end, 2), desc=str(pos + 1), position=pos, unit="Primes"):
-            if is_prime(num, int(end ** 0.5)):
+    if start <= 2 <= end: out.append(2)
+
+    if start % 2 == 0:
+        start += 1
+
+    if pos == None:
+        for num in range(start, end + 1, 2):
+            if is_prime(num):
                 out.append(num)
+    
     else:
-        for num in range(start, end, 2):
-            if is_prime(num, int(end ** 0.5)):
+        for num in tqdm(range(start, end + 1, 2), desc=f"{pos + 1} ", position=pos, unit="Primes"):
+            if is_prime(num):
                 out.append(num)
 
     return out
@@ -63,6 +64,7 @@ def get_nums_list(min_num, max_num, process_count):
         max_num - rest + 2,
         max_num
     ])
+    Console.print(lst)
     return lst
 
 
