@@ -64,7 +64,6 @@ def get_nums_list(min_num, max_num, process_count):
         max_num - rest + 2,
         max_num
     ])
-    Console.print(lst)
     return lst
 
 
