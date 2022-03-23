@@ -41,30 +41,44 @@ def get_primes(start: int, end: int, pos=None):
     return out
 
 
-def get_nums_list(min_num, max_num, process_count):
-    if process_count == 1:
-        return [[min_num, max_num]]
-    
+def get_nums_list(min_num: int, max_num: int, process_count: int) -> list:
+    # Setup nums
+    min_num = min_num
+    max_num = max_num + 1
+    process_count = process_count
     count_of_nums = max_num - min_num
-    nums_per_worker = math.floor(count_of_nums / process_count)
-    if nums_per_worker <= 1:
-        return None
+    max_score = 0
+    for i in range(count_of_nums + 1):
+        max_score += i
 
-    rest = count_of_nums - (nums_per_worker * (process_count - 1)) + 1
+    score_per_worker = math.floor(max_score / process_count)
+    rest = max_score - ((process_count - 1) * score_per_worker)
 
-    start = min_num
-    lst = []
-    for i in range(process_count - 1):
-        lst.append([
-            start + 1,
-            start + nums_per_worker
-        ])
-        start += nums_per_worker
-    lst.append([
-        max_num - rest + 2,
-        max_num
+    out = []
+
+    num = min_num + 1
+    for p_num in range(process_count - 1):
+        score = 0
+        start = num
+        while True:
+            score += num
+            num += 1
+            if score >= score_per_worker:
+                out.append([
+                    start,
+                    num
+                ])
+                num += 1
+                break
+            elif num > max_num:
+                break
+
+    out.append([
+        out[-1][1],
+        count_of_nums
     ])
-    return lst
+
+    return out
 
 
 def worker(id: int, start: int, end: int, q: Queue):
