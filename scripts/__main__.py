@@ -1,5 +1,5 @@
 from arg_parse import parse_args
-# from console import *
+from console import *
 
 import math
 from sys import exit
@@ -51,7 +51,7 @@ def get_nums_list(min_num: int, max_num: int, process_count: int) -> list:
     for i in range(count_of_nums + 1):
         max_score += i
 
-    score_per_worker = int(max_score / process_count)
+    score_per_worker = math.floor(max_score / process_count)
     rest = max_score - ((process_count - 1) * score_per_worker)
 
     out = []
@@ -66,9 +66,7 @@ def get_nums_list(min_num: int, max_num: int, process_count: int) -> list:
             if score >= score_per_worker:
                 out.append([
                     start,
-                    num,
-                    score,
-                    num - start
+                    num
                 ])
                 num += 1
                 break
@@ -77,9 +75,7 @@ def get_nums_list(min_num: int, max_num: int, process_count: int) -> list:
 
     out.append([
         out[-1][1],
-        count_of_nums,
-        rest,
-        count_of_nums - out[-1][1]
+        count_of_nums
     ])
 
     return out
@@ -95,18 +91,16 @@ def main():
     """
     args = parse_args()
 
-    print(f"Calculating all primes from {args.min} to {args.max}")
-    print(f"Process Count: {args.process_count}")
+    Console.success(f"Calculating all primes from {args.min} to {args.max}")
+    Console.success(f"Process Count: {args.process_count}")
 
     queue = Queue()
     primes = []
 
     nums = get_nums_list(args.min, args.max, args.process_count)
     if nums == None:
-        print("Number of workers to high")
+        Console.error("Number of workers to high")
         exit(1)
-    for num in nums:
-        print(num[-1])
 
     processes: list[Process] = []
     for i in range(args.process_count):
@@ -132,15 +126,15 @@ def main():
     end_time = perf_counter()
     
     if args.sort:
-        print("Sorting list...")
+        Console.print("Sorting list...")
         primes.sort()
     
-    print("Generating out string...")
+    Console.print("Generating out string...")
     if not args.no_output:
         string = ""
 
-        for prime_i in tqdm(range(len(primes))):
-            string += f"{primes[prime_i]}\n"
+        for prime in primes:
+            string += f"{prime}\n"
 
         string += f"""\nCalculated {len(primes)} Primes
 Ran for {end_time - start_time} seconds"""
@@ -150,12 +144,12 @@ Ran for {end_time - start_time} seconds"""
 Ran for {end_time - start_time} seconds"""
         
     if args.out == None:
-        print(string)
+        Console.print(string)
 
     else:
         with open(args.out, "w") as f:
             f.write(string)
-            print(f"Wrote to {args.out}")
+        Console.print(f"Wrote to {args.out}")
 
 
 if __name__ == "__main__":
