@@ -80,9 +80,9 @@ def parse_args():
     )
 
     parser.add_argument(
-        "--score-based",
-        action="store_true",
-        help="Use score-based distribution algorithm. Can decrease efficiency"
+        "--algo-name",
+        choices=["score_based", "num_based"],
+        help="Name of the distribution algorithm"
     )
 
     return parser.parse_args()
