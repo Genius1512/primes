@@ -6,7 +6,7 @@ def score_based(min_num: int, max_num: int, process_count: int) -> list:
         return [[min_num, max_num]]
     max_num += 1
     count_of_nums = max_num - min_num
-    
+
     max_score = 0
     for score in range(count_of_nums + 1):
         max_score += score
@@ -24,19 +24,13 @@ def score_based(min_num: int, max_num: int, process_count: int) -> list:
             num += 1
 
             if score >= score_per_worker:
-                out.append([
-                    start,
-                    num
-                ])
+                out.append([start, num])
                 num += 1
                 break
             if num > max_num:
                 break
 
-    out.append([
-        out[-1][1],
-        count_of_nums,
-    ])
+    out.append([out[-1][1], count_of_nums])
 
     for i in range(2, process_count):
         divisor = i
@@ -63,17 +57,10 @@ def num_based(min_num: int, max_num: int, process_count: int) -> list:
     start = min_num
     lst = []
     for i in range(process_count - 1):
-        lst.append([
-            start + 1,
-            start + nums_per_worker
-        ])
+        lst.append([start + 1, start + nums_per_worker])
         start += nums_per_worker
-    lst.append([
-        max_num - rest + 2,
-        max_num
-    ])
+    lst.append([max_num - rest + 2, max_num])
     return lst
-
 
 
 if __name__ == "__main__":

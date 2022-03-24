@@ -12,7 +12,7 @@ class Console:
         for object in objects:
             print(object, end=" ")
         print("")
-    
+
     @staticmethod
     def success(*objects):
         """
@@ -21,7 +21,7 @@ class Console:
         for object in objects:
             print(f"[bold green]{object}[/bold green]", end=" ")
         print("")
-    
+
     @staticmethod
     def warn(*objects):
         """
@@ -54,10 +54,7 @@ class Spinner:
         A basic status spinner
         """
         self.done_text = done_text
-        self.spinner = Status(
-            status=status,
-            spinner="dots"
-        )
+        self.spinner = Status(status=status, spinner="dots")
         self.spinner.start()
 
     def stop(self):

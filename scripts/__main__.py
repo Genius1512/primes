@@ -1,5 +1,6 @@
 from arg_parse import parse_args
 import nums_list_algorithms as nla
+
 # from console import *
 
 import math
@@ -24,7 +25,8 @@ def is_prime(num: int) -> bool:
 
 def get_primes(start: int, end: int, pos=None):
     out = []
-    if start <= 2 <= end: out.append(2)
+    if start <= 2 <= end:
+        out.append(2)
 
     if start % 2 == 0:
         start += 1
@@ -33,9 +35,11 @@ def get_primes(start: int, end: int, pos=None):
         for num in range(start, end + 1, 2):
             if is_prime(num):
                 out.append(num)
-    
+
     else:
-        for num in tqdm(range(start, end + 1, 2), desc=f"{pos + 1} ", position=pos, unit="Primes"):
+        for num in tqdm(
+            range(start, end + 1, 2), desc=f"{pos + 1} ", position=pos, unit="Primes"
+        ):
             if is_prime(num):
                 out.append(num)
 
@@ -43,10 +47,7 @@ def get_primes(start: int, end: int, pos=None):
 
 
 def get_nums_list(algorithm_name: str):
-    dct = {
-        "score_based": nla.score_based,
-        "num_based":   nla.num_based
-    }
+    dct = {"score_based": nla.score_based, "num_based": nla.num_based}
 
     return dct[algorithm_name]
 
@@ -79,13 +80,12 @@ def main():
         else:
             id = i
 
-        processes.append(Process(
-            target=worker,
-            args=(id, nums[i][0], nums[i][1], queue)
-        ))
+        processes.append(
+            Process(target=worker, args=(id, nums[i][0], nums[i][1], queue))
+        )
 
     start_time = perf_counter()
-    
+
     print("Starting")
     for p in processes:
         p.start()
@@ -95,11 +95,11 @@ def main():
         p.join()
 
     end_time = perf_counter()
-    
+
     if args.sort:
         print("Sorting list...")
         primes.sort()
-    
+
     if not args.no_output:
         string = ""
 
@@ -108,11 +108,11 @@ def main():
 
         string += f"""\nCalculated {len(primes)} Primes
 Ran for {end_time - start_time} seconds"""
-    
+
     else:
         string = f"""\nCalculated {len(primes)} Primes
 Ran for {end_time - start_time} seconds"""
-        
+
     if args.out == None:
         print(string)
 
@@ -124,4 +124,3 @@ Ran for {end_time - start_time} seconds"""
 
 if __name__ == "__main__":
     main()
-
