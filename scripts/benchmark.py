@@ -5,8 +5,8 @@ from time import perf_counter
 
 
 def main():
-    tests_count = 10
-    min_num, max_num = 1, 1000000
+    tests_count = 20
+    min_num, max_num = 1, 10000000
 
     sb_times = []
     nb_times = []

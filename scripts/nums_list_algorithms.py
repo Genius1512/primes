@@ -65,3 +65,4 @@ def num_based(min_num: int, max_num: int, process_count: int) -> list:
 
 if __name__ == "__main__":
     score_based(1, 1000, 2)
+
