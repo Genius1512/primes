@@ -84,7 +84,6 @@ def main():
 
     start_time = perf_counter()
 
-    print("Starting")
     for p in processes:
         p.start()
     for p in processes:

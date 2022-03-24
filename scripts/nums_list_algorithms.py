@@ -33,7 +33,7 @@ def score_based(min_num: int, max_num: int, process_count: int) -> list:
     out.append([out[-1][1], count_of_nums])
 
     for i in range(2, process_count):
-        divisor = i
+        divisor = i * 1.75
         num = math.ceil((out[i - 2][1] - out[i - 2][0]) / divisor)
         out[i - 2][1] -= num
         try:
