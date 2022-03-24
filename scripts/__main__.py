@@ -1,8 +1,6 @@
 from arg_parse import parse_args
 import nums_list_algorithms as nla
 
-# from console import *
-
 import math
 from sys import exit
 from time import perf_counter
