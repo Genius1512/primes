@@ -1,57 +1,45 @@
 from arg_parse import parse_args
-import nums_list_algorithms as nla
 
 import math
-from sys import exit
-from time import perf_counter
-from tqdm import tqdm
 from multiprocessing import Process, Queue
+from threading import Thread
+from time import perf_counter
+from rich import print
 
 
-def is_prime(num: int) -> bool:
-    if num == 1:
-        return False
-    elif num == 2:
-        return False
-
-    for i in range(2, math.ceil(num ** 0.5) + 1):
-        if num % i == 0:
-            return False
-
-    return True
+# globals
+primes: list[int] = []
+last_num: int = 0
 
 
-def get_primes(start: int, end: int, pos=None):
-    out = []
-    if start <= 2 <= end:
-        out.append(2)
+def manager(inp: Queue, out: Queue, max_num: int):
+    global primes
+    global last_num
 
-    if start % 2 == 0:
-        start += 1
-
-    if pos == None:
-        for num in range(start, end + 1, 2):
-            if is_prime(num):
-                out.append(num)
-
-    else:
-        for num in tqdm(
-            range(start, end + 1, 2), desc=f"{pos + 1} ", position=pos, unit="Primes"
-        ):
-            if is_prime(num):
-                out.append(num)
-
-    return out
+    while True:
+        if last_num >= max_num:
+            print("Manager done")
+            out.put(-1)
+            break
+        
+        out.put(last_num + 1)
+        last_num += 1
+        
+        prime = inp.get()
+        if prime != -1:
+            primes.append(prime)
 
 
-def get_nums_list(algorithm_name: str):
-    dct = {"score_based": nla.score_based, "num_based": nla.num_based}
-
-    return dct[algorithm_name]
-
-
-def worker(id: int, start: int, end: int, q: Queue):
-    q.put(get_primes(start, end, id))
+def worker(inp: Queue, out: Queue):
+    while True:
+        num = inp.get()
+        if num == -1:
+            print("Worker done")
+            break
+        if is_prime(num):
+            out.put(num)
+        else:
+            out.put(-1)
 
 
 def main():
@@ -60,63 +48,58 @@ def main():
     """
     args = parse_args()
 
-    print(f"Calculating all primes from {args.min} to {args.max}")
-    print(f"Process Count: {args.process_count}")
+    print(f"""Calculating primes from {args.min} - {args.max}
+Workers count: {args.process_count}""")
 
-    queue = Queue()
-    primes = []
+    # Vars setup
+    last_num = args.min 
 
-    nums = get_nums_list(args.algo_name)(args.min, args.max, args.process_count)
-    if nums == None:
-        print("Number of workers to high")
-        exit(1)
+    managers: list[Thread] = []
+    workers: list[Process] = []
 
-    processes: list[Process] = []
     for i in range(args.process_count):
-        if not args.bar:
-            id = None
-        else:
-            id = i
+        manager_inp = Queue(1)
+        manager_out = Queue(1)
 
-        processes.append(
-            Process(target=worker, args=(id, nums[i][0], nums[i][1], queue))
-        )
+        managers.append(Thread(
+            target=manager,
+            args=(manager_inp, manager_out, args.max)
+        ))
+        workers.append(Process(
+            target=worker,
+            args=(manager_out, manager_inp)
+        ))
 
     start_time = perf_counter()
 
-    for p in processes:
-        p.start()
-    for p in processes:
-        primes += queue.get()
-    for p in processes:
-        p.join()
+    for i in range(args.process_count):
+        managers[i].start()
+        workers[i].start()
+
+    for i in range(args.process_count):
+        managers[i].join()
+        workers[i].join()
 
     end_time = perf_counter()
 
-    if args.sort:
-        print("Sorting list...")
-        primes.sort()
+    print(f"""Done.
+Calculated {len(primes)} primes
+Ran for {end_time - start_time} seconds""")
+    primes.sort()
+    print(primes)
 
-    if not args.no_output:
-        string = ""
 
-        for prime_i in tqdm(range(len(primes)), desc="Generating out string..."):
-            string += f"{primes[prime_i]}\n"
+def is_prime(num: int) -> bool:
+    if num == 1:
+        return False
+    elif num == 2:
+        return True
 
-        string += f"""\nCalculated {len(primes)} Primes
-Ran for {end_time - start_time} seconds"""
+    for i in range(2, math.ceil(num ** 0.5) + 1):
+        if num % i == 0:
+            return False
 
-    else:
-        string = f"""\nCalculated {len(primes)} Primes
-Ran for {end_time - start_time} seconds"""
-
-    if args.out == None:
-        print(string)
-
-    else:
-        with open(args.out, "w") as f:
-            f.write(string)
-            print(f"Wrote to {args.out}")
+    return True
 
 
 if __name__ == "__main__":
