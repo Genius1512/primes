@@ -81,6 +81,7 @@ def parse_args():
 
     parser.add_argument(
         "--algo-name",
+        default="num_based",
         choices=["score_based", "num_based"],
         help="Name of the distribution algorithm"
     )
