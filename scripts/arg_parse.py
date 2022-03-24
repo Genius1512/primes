@@ -79,6 +79,12 @@ def parse_args():
         help="Sort primes by number"
     )
 
+    parser.add_argument(
+        "--score-based",
+        action="store_true",
+        help="Use score-based distribution algorithm. Can decrease efficiency"
+    )
+
     return parser.parse_args()
 
 

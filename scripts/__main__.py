@@ -41,48 +41,72 @@ def get_primes(start: int, end: int, pos=None):
     return out
 
 
-def get_nums_list(min_num: int, max_num: int, process_count: int) -> list:
-    # Setup nums
-    min_num = min_num
-    max_num = max_num + 1
-    process_count = process_count
-    count_of_nums = max_num - min_num
-    max_score = 0
-    for i in range(count_of_nums + 1):
-        max_score += i
+def get_nums_list(min_num: int, max_num: int, process_count: int, score_based: bool = False) -> list:
+    if score_based:
+        # Setup nums
+        min_num = min_num
+        max_num = max_num + 1
+        process_count = process_count
+        count_of_nums = max_num - min_num
 
-    score_per_worker = int(max_score / process_count)
-    rest = max_score - ((process_count - 1) * score_per_worker)
+        max_score = 0
+        for i in range(count_of_nums + 1):
+            max_score += i
 
-    out = []
+        score_per_worker = int(max_score / process_count)
+        rest = max_score - ((process_count - 1) * score_per_worker)
 
-    num = min_num + 1
-    for p_num in range(process_count - 1):
-        score = 0
-        start = num
-        while True:
-            score += num
-            num += 1
-            if score >= score_per_worker:
-                out.append([
-                    start,
-                    num,
-                    score,
-                    num - start
-                ])
+        out = []
+
+        num = min_num + 1
+        for p_num in range(process_count - 1):
+            score = 0
+            start = num
+            while True:
+                score += num
                 num += 1
-                break
-            elif num > max_num:
-                break
+                if score >= score_per_worker:
+                    out.append([
+                        start,
+                        num,
+                        score,
+                        num - start
+                    ])
+                    num += 1
+                    break
+                elif num > max_num:
+                    break
 
-    out.append([
-        out[-1][1],
-        count_of_nums,
-        rest,
-        count_of_nums - out[-1][1]
-    ])
+        out.append([
+            out[-1][1],
+            count_of_nums,
+            rest,
+            count_of_nums - out[-1][1]
+        ])
 
-    return out
+        return out
+
+    else:
+        if process_count == 1:
+            return [[min_num, max_num]]
+    
+        count_of_nums = max_num - min_num
+        nums_per_worker = math.floor(count_of_nums / process_count)
+        rest = count_of_nums - (nums_per_worker * (process_count - 1)) + 1
+
+        start = min_num
+        lst = []
+        for i in range(process_count - 1):
+            lst.append([
+                start + 1,
+                start + nums_per_worker
+            ])
+            start += nums_per_worker
+        lst.append([
+            max_num - rest + 2,
+            max_num
+        ])
+        return lst
 
 
 def worker(id: int, start: int, end: int, q: Queue):
@@ -101,7 +125,7 @@ def main():
     queue = Queue()
     primes = []
 
-    nums = get_nums_list(args.min, args.max, args.process_count)
+    nums = get_nums_list(args.min, args.max, args.process_count, args.score_based)
     if nums == None:
         print("Number of workers to high")
         exit(1)
@@ -135,8 +159,8 @@ def main():
         print("Sorting list...")
         primes.sort()
     
-    print("Generating out string...")
     if not args.no_output:
+        print("Generating out string...")
         string = ""
 
         for prime_i in tqdm(range(len(primes))):
