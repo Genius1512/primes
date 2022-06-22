@@ -42,6 +42,9 @@ def get_primes(start: int, end: int, pos=None):
 
 
 def get_nums_list(min_num: int, max_num: int, process_count: int) -> list:
+    if process_count == 1:
+        return [[min_num, max_num]]
+
     # Setup nums
     min_num = min_num
     max_num = max_num + 1
@@ -129,8 +132,8 @@ def main():
         Console.print("Sorting list...")
         primes.sort()
     
-    Console.print("Generating out string...")
     if not args.no_output:
+        Console.print("Generating out string...")
         string = ""
 
         for prime in primes:
